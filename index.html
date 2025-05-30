@@ -320,17 +320,7 @@
                 font-size: 16px;
                 background: #007bff;
                 color: white;
-                cursor: pointer;
                 position: relative;
-            }
-            
-            .tree-header::after {
-                content: '👆 اضغط لإظهار/إخفاء الهيكل';
-                font-size: 12px;
-                position: absolute;
-                left: 15px;
-                top: 50%;
-                transform: translateY(-50%);
             }
             
             .preview-section iframe {
@@ -431,7 +421,8 @@
             <div class="mobile-quick-actions" style="display: none;">
                 <button class="btn btn-success" onclick="showAddModal('subject')" style="flex: 1;">📚 مادة</button>
                 <button class="btn btn-success" onclick="showAddModal('course')" style="flex: 1;">📖 كورس</button>
-                <button class="btn" onclick="showAddModal('lesson')" style="flex: 1;">📝 درس</button>
+                <button class="btn btn-success" onclick="showAddModal('lesson')" style="flex: 1;">📝 درس</button>
+                <button class="btn btn-danger" onclick="deleteSelectedItem()" style="flex: 1;">🗑️ حذف</button>
             </div>
             
             <div class="mobile-more-actions" style="display: none;">
@@ -446,7 +437,8 @@
             
             <button class="btn btn-success" onclick="showAddModal('subject')">📚 إضافة مادة</button>
             <button class="btn btn-success" onclick="showAddModal('course')">📖 إضافة كورس</button>
-            <button class="btn" onclick="showAddModal('lesson')">📝 إضافة درس</button>
+            <button class="btn btn-success" onclick="showAddModal('lesson')">📝 إضافة درس</button>
+            <button class="btn btn-danger" onclick="deleteSelectedItem()">🗑️ حذف المحدد (Delete)</button>
             <button class="btn btn-warning" onclick="showPreviewModal()">👀 معاينة الدرس</button>
             <button class="btn" onclick="showSearchModal()">🔍 بحث (Ctrl+F)</button>
             <button class="btn" onclick="exportXML()">💾 تصدير XML</button>
@@ -456,7 +448,7 @@
         
         <div class="main-content">
             <div class="sidebar">
-                <div class="tree-header" onclick="toggleTreeContainer()">🗂️ هيكل المحتوى</div>
+                <div class="tree-header">🗂️ هيكل المحتوى</div>
                 <div class="tree-container" id="tree-container" tabindex="0">
                     <div style="text-align: center; padding: 50px 20px; color: #666;">
                         لا توجد مواد حتى الآن<br>
@@ -483,28 +475,28 @@
                     <input type="text" id="lessonName" placeholder="اسم الدرس">
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" style="display:none">
                     <label>رابط PDF:</label>
                     <textarea id="pdf" rows="2" placeholder="رابط ملف PDF أو كود مضمن"></textarea>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" style="display:none">
                     <label>رابط الصوت:</label>
                     <textarea id="audio" rows="2" placeholder="رابط ملف الصوت أو كود مضمن"></textarea>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" style="display:none">
                     <label>كود يوتيوب:</label>
                     <textarea id="youtube" rows="3" placeholder="كود التضمين من يوتيوب أو رابط"></textarea>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" style="display:none">
                     <label>كود جوجل درايف:</label>
                     <textarea id="drive" rows="3" placeholder="كود التضمين من جوجل درايف أو رابط"></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label>محتوى HTML:</label>
+                    <label>محتوى الدرس:</label>
                     <textarea id="html" rows="10" placeholder="المحتوى التعليمي بصيغة HTML"></textarea>
                 </div>
                 
@@ -578,11 +570,6 @@
             updateTree();
             showStatus('تم تحميل التطبيق بنجاح', 'success');
             setupKeyboardShortcuts();
-            
-            // إخفاء الشجرة افتراضياً في الموبايل
-            if (window.innerWidth <= 768) {
-                document.getElementById('tree-container').style.display = 'none';
-            }
         };
 
         // إعداد اختصارات الكيبورد
@@ -810,113 +797,17 @@
                 <hr style="margin: 15px 0;">
             `;
             
-            // معاينة PDF
-            if (lessonData.pdf) {
-                const pdfContent = lessonData.pdf.trim();
-                previewHTML += `
-                    <div class="preview-section">
-                        <h4>📄 محتوى PDF:</h4>
-                `;
-                
-                if (pdfContent.includes('<iframe') || pdfContent.includes('<embed')) {
-                    // إذا كان كود مضمن
-                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${pdfContent}</div>`;
-                } else {
-                    // إذا كان رابط
-                    previewHTML += `<a href="${pdfContent}" target="_blank">${pdfContent}</a>`;
-                }
-                
-                previewHTML += `</div>`;
-            }
-            
-            // معاينة الصوت
-            if (lessonData.audio) {
-                const audioContent = lessonData.audio.trim();
-                previewHTML += `
-                    <div class="preview-section">
-                        <h4>🎵 محتوى الصوت:</h4>
-                `;
-                
-                if (audioContent.includes('<audio') || audioContent.includes('<iframe') || audioContent.includes('<embed')) {
-                    // إذا كان كود مضمن
-                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${audioContent}</div>`;
-                } else {
-                    // إذا كان رابط صوت
-                    previewHTML += `
-                        <audio controls style="width: 100%;">
-                            <source src="${audioContent}" type="audio/mpeg">
-                            متصفحك لا يدعم تشغيل الصوت
-                        </audio>
-                    `;
-                }
-                
-                previewHTML += `</div>`;
-            }
-            
-            // معاينة يوتيوب
-            if (lessonData.youtube_embed) {
-                const youtubeContent = lessonData.youtube_embed.trim();
-                previewHTML += `
-                    <div class="preview-section">
-                        <h4>📺 محتوى يوتيوب:</h4>
-                `;
-                
-                if (youtubeContent.includes('<iframe') || youtubeContent.includes('<embed')) {
-                    // إذا كان كود مضمن
-                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${youtubeContent}</div>`;
-                } else if (youtubeContent.includes('youtube.com') || youtubeContent.includes('youtu.be')) {
-                    // إذا كان رابط يوتيوب، تحويله لإطار مضمن
-                    let videoId = '';
-                    if (youtubeContent.includes('youtu.be/')) {
-                        videoId = youtubeContent.split('youtu.be/')[1].split('?')[0];
-                    } else if (youtubeContent.includes('watch?v=')) {
-                        videoId = youtubeContent.split('watch?v=')[1].split('&')[0];
-                    }
-                    
-                    if (videoId) {
-                        previewHTML += `<iframe src="https://www.youtube.com/embed/${videoId}" width="100%" height="300" allowfullscreen></iframe>`;
-                    } else {
-                        previewHTML += `<a href="${youtubeContent}" target="_blank">${youtubeContent}</a>`;
-                    }
-                } else {
-                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${youtubeContent}</div>`;
-                }
-                
-                previewHTML += `</div>`;
-            }
-            
-            // معاينة جوجل درايف
-            if (lessonData.drive_embed) {
-                const driveContent = lessonData.drive_embed.trim();
-                previewHTML += `
-                    <div class="preview-section">
-                        <h4>☁️ محتوى جوجل درايف:</h4>
-                `;
-                
-                if (driveContent.includes('<iframe') || driveContent.includes('<embed')) {
-                    // إذا كان كود مضمن
-                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${driveContent}</div>`;
-                } else {
-                    // إذا كان رابط
-                    previewHTML += `<a href="${driveContent}" target="_blank">${driveContent}</a>`;
-                }
-                
-                previewHTML += `</div>`;
-            }
-            
-            // معاينة HTML
+            // معاينة محتوى الدرس فقط
             if (lessonData.html) {
                 previewHTML += `
                     <div class="preview-section">
-                        <h4>🌐 محتوى HTML:</h4>
+                        <h4>🌐 محتوى الدرس:</h4>
                         <div style="border: 1px solid #ddd; padding: 15px; background: white; border-radius: 5px;">
                             ${cleanCDATA(lessonData.html)}
                         </div>
                     </div>
                 `;
-            }
-            
-            if (!lessonData.pdf && !lessonData.audio && !lessonData.youtube_embed && !lessonData.drive_embed && !lessonData.html) {
+            } else {
                 previewHTML += '<p style="text-align: center; color: #666;">هذا الدرس لا يحتوي على محتوى بعد</p>';
             }
             
@@ -964,16 +855,47 @@
             }
 
             let html = '';
-            subjects.forEach(subject => {
-                html += `<div class="tree-item subject" tabindex="0" onclick="selectItem('subject', '${subject.name}')" onkeydown="handleKeyPress(event, 'subject', '${subject.name}')">📚 ${subject.name}</div>`;
+            subjects.forEach((subject, subjectIndex) => {
+                // عرض المادة مع إمكانية الطي/الفتح
+                const subjectId = `subject-${subjectIndex}`;
+                const isSubjectExpanded = localStorage.getItem(`expanded-${subjectId}`) !== 'false';
                 
-                subject.courses.forEach(course => {
-                    html += `<div class="tree-item course" tabindex="0" onclick="selectItem('course', '${subject.name}', '${course.name}')" onkeydown="handleKeyPress(event, 'course', '${subject.name}', '${course.name}')">📖 ${course.name}</div>`;
-                    
-                    course.lessons.forEach(lesson => {
-                        html += `<div class="tree-item lesson" tabindex="0" onclick="selectItem('lesson', '${subject.name}', '${course.name}', '${lesson.name}')" onkeydown="handleKeyPress(event, 'lesson', '${subject.name}', '${course.name}', '${lesson.name}')">📝 ${lesson.name}</div>`;
+                html += `
+                    <div class="tree-item subject" tabindex="0" onclick="selectItem('subject', '${subject.name}')" onkeydown="handleKeyPress(event, 'subject', '${subject.name}')">
+                        <span onclick="event.stopPropagation(); toggleSubject('${subjectId}')" style="margin-left: 10px; cursor: pointer;">
+                            ${isSubjectExpanded ? '📂' : '📁'}
+                        </span>
+                        📚 ${subject.name}
+                    </div>
+                `;
+                
+                // عرض الكورسات إذا كانت المادة مفتوحة
+                if (isSubjectExpanded) {
+                    subject.courses.forEach((course, courseIndex) => {
+                        const courseId = `course-${subjectIndex}-${courseIndex}`;
+                        const isCourseExpanded = localStorage.getItem(`expanded-${courseId}`) !== 'false';
+                        
+                        html += `
+                            <div class="tree-item course" tabindex="0" onclick="selectItem('course', '${subject.name}', '${course.name}')" onkeydown="handleKeyPress(event, 'course', '${subject.name}', '${course.name}')">
+                                <span onclick="event.stopPropagation(); toggleCourse('${courseId}')" style="margin-left: 10px; cursor: pointer;">
+                                    ${isCourseExpanded ? '📂' : '📁'}
+                                </span>
+                                📖 ${course.name}
+                            </div>
+                        `;
+                        
+                        // عرض الدروس إذا كان الكورس مفتوح
+                        if (isCourseExpanded) {
+                            course.lessons.forEach(lesson => {
+                                html += `
+                                    <div class="tree-item lesson" tabindex="0" onclick="selectItem('lesson', '${subject.name}', '${course.name}', '${lesson.name}')" onkeydown="handleKeyPress(event, 'lesson', '${subject.name}', '${course.name}', '${lesson.name}')">
+                                        📝 ${lesson.name}
+                                    </div>
+                                `;
+                            });
+                        }
                     });
-                });
+                }
             });
             
             container.innerHTML = html;
@@ -995,6 +917,11 @@
             document.getElementById('subjectName').value = subject || '';
             document.getElementById('courseName').value = course || '';
             document.getElementById('lessonName').value = lesson || '';
+            
+            // مسح محتوى الدرس عند تحديد مادة أو كورس
+            if (type !== 'lesson') {
+                document.getElementById('html').value = '';
+            }
             
             // تحميل بيانات الدرس إذا تم اختياره
             if (type === 'lesson' && lesson) {
@@ -1376,6 +1303,40 @@
             input.value = '';
         }
 
+        // تنظيف محتوى HTML من علامات CDATA
+        function cleanCDATA(content) {
+            if (!content) return '';
+            // إزالة علامات CDATA
+            return content
+                .replace(/<!\[CDATA\[/g, '')
+                .replace(/\]\]>/g, '')
+                .trim();
+        }
+
+        // تبديل عرض المادة (طي/فتح)
+        function toggleSubject(subjectId) {
+            const isExpanded = localStorage.getItem(`expanded-${subjectId}`) !== 'false';
+            localStorage.setItem(`expanded-${subjectId}`, !isExpanded);
+            updateTree();
+        }
+        
+        // تبديل عرض الكورس (طي/فتح)
+        function toggleCourse(courseId) {
+            const isExpanded = localStorage.getItem(`expanded-${courseId}`) !== 'false';
+            localStorage.setItem(`expanded-${courseId}`, !isExpanded);
+            updateTree();
+        }
+        
+        // تبديل قائمة الخيارات الإضافية في الموبايل
+        function toggleMoreActions() {
+            const menu = document.getElementById('more-actions-menu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
         // إغلاق النافذة المنبثقة
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
@@ -1412,36 +1373,6 @@
                 previewModal.style.display = 'none';
             }
         }
-
-        // تنظيف محتوى HTML من علامات CDATA
-        function cleanCDATA(content) {
-            if (!content) return '';
-            // إزالة علامات CDATA
-            return content
-                .replace(/<!\[CDATA\[/g, '')
-                .replace(/\]\]>/g, '')
-                .trim();
-        }
-
-        // تبديل عرض الشجرة
-        function toggleTreeContainer() {
-            const treeContainer = document.getElementById('tree-container');
-            if (treeContainer.style.display === 'none' || treeContainer.style.display === '') {
-                treeContainer.style.display = 'flex';
-            } else {
-                treeContainer.style.display = 'none';
-            }
-        }
-        
-        // تبديل قائمة الخيارات الإضافية في الموبايل
-        function toggleMoreActions() {
-            const menu = document.getElementById('more-actions-menu');
-            if (menu.style.display === 'none' || menu.style.display === '') {
-                menu.style.display = 'block';
-            } else {
-                menu.style.display = 'none';
-            }
-        }
     </script>
 </body>
-</html> 
+</html>
