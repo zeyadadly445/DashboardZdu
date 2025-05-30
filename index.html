@@ -2,7 +2,10 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#2c5aa0">
     <title>نظام إدارة المحتوى التعليمي - نسخة محسنة</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -20,7 +23,7 @@
             color: white; padding: 20px; text-align: center;
         }
         .toolbar { 
-            background: #f8f9fa; padding: 15px; border-bottom: 1px solid #dee2e6;
+            background: #f8f9fa; padding: 10px; border-bottom: 1px solid #dee2e6;
             display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
         }
         .main-content { display: flex; height: calc(100vh - 140px); }
@@ -185,6 +188,85 @@
         
         /* تحسينات للمس والأجهزة المحمولة */
         @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 15px 10px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .toolbar {
+                padding: 10px;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .mobile-quick-actions {
+                display: flex !important;
+                gap: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .mobile-more-actions {
+                display: block !important;
+            }
+            
+            .toolbar > .btn:not(.mobile-quick-actions .btn):not(.mobile-more-actions .btn) {
+                display: none; /* إخفاء الأزرار العادية في الموبايل */
+            }
+            
+            .toolbar button {
+                width: 100%;
+                padding: 15px;
+                font-size: 16px;
+                margin: 2px 0;
+            }
+            
+            .mobile-quick-actions button {
+                margin: 0;
+                padding: 12px 8px;
+                font-size: 14px;
+                width: auto;
+            }
+            
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+                order: 2;
+                border-left: none;
+                border-top: 2px solid #dee2e6;
+            }
+            
+            .details-panel {
+                order: 1;
+                padding: 15px;
+            }
+            
+            .tree-container {
+                max-height: 35vh;
+            }
+            
             .tree-item {
                 padding: 15px 18px;
                 font-size: 16px;
@@ -195,6 +277,122 @@
             }
             .tree-item.selected {
                 transform: translateX(-3px);
+            }
+            
+            .form-group label {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            
+            .btn {
+                padding: 15px 20px;
+                font-size: 16px;
+                margin: 8px 5px;
+                border-radius: 8px;
+            }
+            
+            .modal-content {
+                margin: 10px;
+                padding: 20px;
+                width: calc(100% - 20px);
+                max-height: 90vh;
+                border-radius: 12px;
+            }
+            
+            .keyboard-help {
+                display: none; /* إخفاء المساعد في الموبايل */
+            }
+            
+            .status {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .tree-header {
+                padding: 12px 15px;
+                font-size: 16px;
+                background: #007bff;
+                color: white;
+                cursor: pointer;
+                position: relative;
+            }
+            
+            .tree-header::after {
+                content: '👆 اضغط لإظهار/إخفاء الهيكل';
+                font-size: 12px;
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            
+            .preview-section iframe {
+                height: 250px;
+            }
+            
+            .search-box input {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .search-result {
+                padding: 12px;
+                font-size: 16px;
+            }
+        }
+        
+        /* للشاشات الصغيرة جداً */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .toolbar {
+                padding: 8px;
+            }
+            
+            .toolbar button {
+                padding: 12px;
+                font-size: 15px;
+            }
+            
+            .details-panel {
+                padding: 10px;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .modal-content {
+                margin: 5px;
+                padding: 15px;
+                width: calc(100% - 10px);
+            }
+            
+            .tree-item {
+                padding: 12px 15px;
+                font-size: 15px;
+            }
+            
+            .preview-section iframe {
+                height: 200px;
+            }
+        }
+        
+        /* إضافة أنماط للشاشات الكبيرة */
+        @media (min-width: 769px) {
+            .tree-header::after {
+                display: none;
             }
         }
         
@@ -230,6 +428,22 @@
         </div>
         
         <div class="toolbar">
+            <div class="mobile-quick-actions" style="display: none;">
+                <button class="btn btn-success" onclick="showAddModal('subject')" style="flex: 1;">📚 مادة</button>
+                <button class="btn btn-success" onclick="showAddModal('course')" style="flex: 1;">📖 كورس</button>
+                <button class="btn" onclick="showAddModal('lesson')" style="flex: 1;">📝 درس</button>
+            </div>
+            
+            <div class="mobile-more-actions" style="display: none;">
+                <button class="btn" onclick="toggleMoreActions()" style="background: #6c757d; width: 100%; margin-bottom: 10px;">⚙️ المزيد من الخيارات</button>
+                <div id="more-actions-menu" style="display: none;">
+                    <button class="btn btn-warning" onclick="showPreviewModal()">👀 معاينة الدرس</button>
+                    <button class="btn" onclick="showSearchModal()">🔍 بحث</button>
+                    <button class="btn" onclick="exportXML()">💾 تصدير XML</button>
+                    <button class="btn" onclick="document.getElementById('import-file').click()">📁 استيراد XML</button>
+                </div>
+            </div>
+            
             <button class="btn btn-success" onclick="showAddModal('subject')">📚 إضافة مادة</button>
             <button class="btn btn-success" onclick="showAddModal('course')">📖 إضافة كورس</button>
             <button class="btn" onclick="showAddModal('lesson')">📝 إضافة درس</button>
@@ -242,7 +456,7 @@
         
         <div class="main-content">
             <div class="sidebar">
-                <div class="tree-header">🗂️ هيكل المحتوى</div>
+                <div class="tree-header" onclick="toggleTreeContainer()">🗂️ هيكل المحتوى</div>
                 <div class="tree-container" id="tree-container" tabindex="0">
                     <div style="text-align: center; padding: 50px 20px; color: #666;">
                         لا توجد مواد حتى الآن<br>
@@ -364,6 +578,11 @@
             updateTree();
             showStatus('تم تحميل التطبيق بنجاح', 'success');
             setupKeyboardShortcuts();
+            
+            // إخفاء الشجرة افتراضياً في الموبايل
+            if (window.innerWidth <= 768) {
+                document.getElementById('tree-container').style.display = 'none';
+            }
         };
 
         // إعداد اختصارات الكيبورد
@@ -1202,6 +1421,26 @@
                 .replace(/<!\[CDATA\[/g, '')
                 .replace(/\]\]>/g, '')
                 .trim();
+        }
+
+        // تبديل عرض الشجرة
+        function toggleTreeContainer() {
+            const treeContainer = document.getElementById('tree-container');
+            if (treeContainer.style.display === 'none' || treeContainer.style.display === '') {
+                treeContainer.style.display = 'flex';
+            } else {
+                treeContainer.style.display = 'none';
+            }
+        }
+        
+        // تبديل قائمة الخيارات الإضافية في الموبايل
+        function toggleMoreActions() {
+            const menu = document.getElementById('more-actions-menu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
         }
     </script>
 </body>
