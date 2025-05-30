@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المحتوى التعليمي - نسخة محسنة</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: #333;
+        }
+        .container { 
+            max-width: 1400px; margin: 0 auto; background: white; 
+            min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background: linear-gradient(45deg, #2c5aa0, #4facfe);
+            color: white; padding: 20px; text-align: center;
+        }
+        .toolbar { 
+            background: #f8f9fa; padding: 15px; border-bottom: 1px solid #dee2e6;
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+        .main-content { display: flex; height: calc(100vh - 140px); }
+        .sidebar { 
+            width: 350px; background: #f8f9fa; border-left: 1px solid #dee2e6;
+            display: flex; flex-direction: column;
+        }
+        .tree-header { 
+            background: #e9ecef; padding: 15px; font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tree-container { 
+            flex: 1; overflow-y: auto; padding: 10px;
+        }
+        .tree-item { 
+            margin: 2px 0; cursor: pointer; padding: 12px 15px;
+            border-radius: 8px; transition: all 0.3s ease; position: relative;
+            border: 2px solid transparent; font-size: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .tree-item:hover { 
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5); 
+            transform: translateX(-3px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            border-color: #2196f3;
+        }
+        .tree-item.selected { 
+            background: linear-gradient(135deg, #2196f3, #1976d2); 
+            color: white; 
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+            border-color: #1565c0;
+        }
+        .tree-item.selected:hover {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+        }
+        .tree-item:active {
+            transform: translateX(-2px) scale(0.98);
+        }
+        .tree-item.subject { 
+            font-weight: bold; 
+            background: linear-gradient(135deg, #e8f5e8, #c8e6c9); 
+            border-right: 4px solid #4caf50; 
+            margin-bottom: 8px;
+        }
+        .tree-item.subject:hover { 
+            background: linear-gradient(135deg, #c8e6c9, #a5d6a7); 
+            border-right-color: #388e3c;
+        }
+        .tree-item.subject.selected { 
+            background: linear-gradient(135deg, #4caf50, #388e3c); 
+            border-right-color: #2e7d32;
+        }
+        .tree-item.course { 
+            margin-right: 20px; 
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2); 
+            border-right: 4px solid #ff9800; 
+            margin-bottom: 5px;
+        }
+        .tree-item.course:hover { 
+            background: linear-gradient(135deg, #ffe0b2, #ffcc80); 
+            border-right-color: #f57c00;
+        }
+        .tree-item.course.selected { 
+            background: linear-gradient(135deg, #ff9800, #f57c00); 
+            border-right-color: #ef6c00;
+        }
+        .tree-item.lesson { 
+            margin-right: 40px; 
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7); 
+            border-right: 4px solid #9c27b0; 
+            margin-bottom: 3px;
+        }
+        .tree-item.lesson:hover { 
+            background: linear-gradient(135deg, #e1bee7, #ce93d8); 
+            border-right-color: #7b1fa2;
+        }
+        .tree-item.lesson.selected { 
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2); 
+            border-right-color: #6a1b9a;
+        }
+        .details-panel { flex: 1; padding: 20px; overflow-y: auto; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { 
+            display: block; margin-bottom: 8px; font-weight: 600; color: #495057;
+        }
+        .form-group input, .form-group textarea { 
+            width: 100%; padding: 12px; border: 2px solid #e9ecef; 
+            border-radius: 8px; font-size: 14px;
+        }
+        .btn { 
+            background: #2196f3; color: white; border: none; 
+            padding: 12px 24px; border-radius: 6px; cursor: pointer; 
+            font-weight: 500; margin: 5px;
+        }
+        .btn:hover { background: #1976d2; }
+        .btn-success { background: #4caf50; }
+        .btn-warning { background: #ff9800; }
+        .btn-danger { background: #f44336; }
+        .modal { 
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+        }
+        .modal-content { 
+            background: white; margin: 5% auto; padding: 30px; 
+            border-radius: 12px; width: 90%; max-width: 800px;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .close { 
+            color: #aaa; float: left; font-size: 28px; 
+            font-weight: bold; cursor: pointer;
+        }
+        .close:hover { color: #000; }
+        .status { 
+            padding: 10px; margin: 10px 0; border-radius: 5px;
+            display: none;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .keyboard-help { 
+            position: fixed; top: 20px; left: 20px; background: #333; 
+            color: white; padding: 15px; border-radius: 8px; font-size: 12px;
+            opacity: 0.9; max-width: 250px; z-index: 500;
+        }
+        .search-box { 
+            margin: 10px 0; 
+        }
+        .search-box input { 
+            width: 100%; padding: 10px; border: 2px solid #007bff; 
+            border-radius: 5px; font-size: 14px;
+        }
+        .search-results { 
+            max-height: 200px; overflow-y: auto; 
+            border: 1px solid #dee2e6; border-radius: 5px;
+            background: white; margin-top: 5px;
+        }
+        .search-result { 
+            padding: 10px; border-bottom: 1px solid #f1f1f1; 
+            cursor: pointer; transition: background 0.2s;
+        }
+        .search-result:hover { background: #f8f9fa; }
+        .preview-content { 
+            background: #f8f9fa; padding: 20px; border-radius: 8px;
+            border: 1px solid #dee2e6; margin: 20px 0;
+        }
+        .preview-section { 
+            margin: 15px 0; 
+        }
+        .preview-section h4 { 
+            color: #495057; margin-bottom: 10px; 
+        }
+        .preview-section iframe { 
+            width: 100%; height: 300px; border: 1px solid #ddd; 
+            border-radius: 5px;
+        }
+        .preview-section a { 
+            color: #007bff; text-decoration: none; 
+        }
+        .preview-section a:hover { 
+            text-decoration: underline; 
+        }
+        
+        /* تحسينات للمس والأجهزة المحمولة */
+        @media (max-width: 768px) {
+            .tree-item {
+                padding: 15px 18px;
+                font-size: 16px;
+                margin-bottom: 5px;
+            }
+            .tree-item:hover {
+                transform: translateX(-2px);
+            }
+            .tree-item.selected {
+                transform: translateX(-3px);
+            }
+        }
+        
+        /* تأثيرات اللمس */
+        .tree-item:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
+        }
+        
+        .tree-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            transition: width 0.3s ease;
+            border-radius: 8px 0 0 8px;
+        }
+        
+        .tree-item:hover::before,
+        .tree-item.selected::before {
+            width: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 نظام إدارة المحتوى التعليمي</h1>
+            <p>النسخة المحسنة - مع اختصارات الكيبورد ومعاينة المحتوى</p>
+        </div>
+        
+        <div class="toolbar">
+            <button class="btn btn-success" onclick="showAddModal('subject')">📚 إضافة مادة</button>
+            <button class="btn btn-success" onclick="showAddModal('course')">📖 إضافة كورس</button>
+            <button class="btn" onclick="showAddModal('lesson')">📝 إضافة درس</button>
+            <button class="btn btn-warning" onclick="showPreviewModal()">👀 معاينة الدرس</button>
+            <button class="btn" onclick="showSearchModal()">🔍 بحث (Ctrl+F)</button>
+            <button class="btn" onclick="exportXML()">💾 تصدير XML</button>
+            <button class="btn" onclick="document.getElementById('import-file').click()">📁 استيراد XML</button>
+            <input type="file" id="import-file" style="display:none" accept=".xml" onchange="importXML(this)">
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="tree-header">🗂️ هيكل المحتوى</div>
+                <div class="tree-container" id="tree-container" tabindex="0">
+                    <div style="text-align: center; padding: 50px 20px; color: #666;">
+                        لا توجد مواد حتى الآن<br>
+                        <small>ابدأ بإضافة مادة جديدة</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="details-panel">
+                <div id="status" class="status"></div>
+                
+                <div class="form-group">
+                    <label>اسم المادة:</label>
+                    <input type="text" id="subjectName" placeholder="اسم المادة">
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم الكورس:</label>
+                    <input type="text" id="courseName" placeholder="اسم الكورس">
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم الدرس:</label>
+                    <input type="text" id="lessonName" placeholder="اسم الدرس">
+                </div>
+                
+                <div class="form-group">
+                    <label>رابط PDF:</label>
+                    <textarea id="pdf" rows="2" placeholder="رابط ملف PDF أو كود مضمن"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>رابط الصوت:</label>
+                    <textarea id="audio" rows="2" placeholder="رابط ملف الصوت أو كود مضمن"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>كود يوتيوب:</label>
+                    <textarea id="youtube" rows="3" placeholder="كود التضمين من يوتيوب أو رابط"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>كود جوجل درايف:</label>
+                    <textarea id="drive" rows="3" placeholder="كود التضمين من جوجل درايف أو رابط"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>محتوى HTML:</label>
+                    <textarea id="html" rows="10" placeholder="المحتوى التعليمي بصيغة HTML"></textarea>
+                </div>
+                
+                <button class="btn" onclick="saveLesson()">💾 حفظ الدرس (Ctrl+S)</button>
+                <button class="btn" onclick="updateNames()">✏️ تحديث الأسماء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal للإضافة -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title">إضافة عنصر جديد</h3>
+            <div class="form-group">
+                <label id="modal-label">الاسم:</label>
+                <input type="text" id="modal-input" placeholder="أدخل الاسم">
+            </div>
+            <div class="form-group" id="subject-select-group" style="display:none">
+                <label>المادة:</label>
+                <select id="subject-select"></select>
+            </div>
+            <div class="form-group" id="course-select-group" style="display:none">
+                <label>الكورس:</label>
+                <select id="course-select"></select>
+            </div>
+            <button class="btn" onclick="addItem()">إضافة</button>
+        </div>
+    </div>
+
+    <!-- Modal للبحث -->
+    <div id="search-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSearchModal()">&times;</span>
+            <h3>🔍 البحث في المحتوى</h3>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="ابحث في المواد والكورسات والدروس..." onkeyup="performSearch()">
+            </div>
+            <div id="search-results" class="search-results" style="display:none"></div>
+        </div>
+    </div>
+
+    <!-- Modal للمعاينة -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePreviewModal()">&times;</span>
+            <h3 id="preview-title">👀 معاينة الدرس</h3>
+            <div id="preview-content" class="preview-content">
+                <p style="text-align: center; color: #666;">يرجى اختيار درس لمعاينته</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- مساعد اختصارات الكيبورد -->
+    <div class="keyboard-help">
+        <strong>⌨️ اختصارات الكيبورد:</strong><br>
+        <strong>Ctrl+S:</strong> حفظ الدرس<br>
+        <strong>Ctrl+F:</strong> بحث<br>
+        <strong>Delete:</strong> حذف المحدد<br>
+        <strong>Escape:</strong> إغلاق النوافذ
+    </div>
+
+    <script>
+        // البيانات المحلية
+        let subjects = JSON.parse(localStorage.getItem('educationData')) || [];
+        let currentSelection = { subject: null, course: null, lesson: null };
+        let modalType = '';
+
+        // تحميل البيانات عند بدء التشغيل
+        window.onload = function() {
+            updateTree();
+            showStatus('تم تحميل التطبيق بنجاح', 'success');
+            setupKeyboardShortcuts();
+        };
+
+        // إعداد اختصارات الكيبورد
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+S للحفظ
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    saveLesson();
+                }
+                
+                // Ctrl+F للبحث
+                if (e.ctrlKey && e.key === 'f') {
+                    e.preventDefault();
+                    showSearchModal();
+                }
+                
+                // Delete للحذف
+                if (e.key === 'Delete') {
+                    deleteSelectedItem();
+                }
+                
+                // Escape لإغلاق النوافذ
+                if (e.key === 'Escape') {
+                    closeAllModals();
+                }
+                
+                // Enter في نافذة الإضافة
+                if (e.key === 'Enter' && document.getElementById('modal').style.display === 'block') {
+                    addItem();
+                }
+                
+                // Enter في نافذة البحث
+                if (e.key === 'Enter' && document.getElementById('search-modal').style.display === 'block') {
+                    performSearch();
+                }
+            });
+        }
+
+        // حذف العنصر المحدد
+        function deleteSelectedItem() {
+            const { subject, course, lesson } = currentSelection;
+            
+            if (!subject) {
+                showStatus('لم يتم تحديد عنصر للحذف', 'error');
+                return;
+            }
+            
+            let message = '';
+            if (lesson) {
+                message = `هل تريد حذف الدرس "${lesson}"؟`;
+            } else if (course) {
+                message = `هل تريد حذف الكورس "${course}" وجميع دروسه؟`;
+            } else {
+                message = `هل تريد حذف المادة "${subject}" وجميع محتوياتها؟`;
+            }
+            
+            if (confirm(message)) {
+                if (lesson) {
+                    deleteLesson(subject, course, lesson);
+                } else if (course) {
+                    deleteCourse(subject, course);
+                } else {
+                    deleteSubject(subject);
+                }
+            }
+        }
+
+        // حذف مادة
+        function deleteSubject(subjectName) {
+            subjects = subjects.filter(s => s.name !== subjectName);
+            currentSelection = { subject: null, course: null, lesson: null };
+            clearFields();
+            saveData();
+            updateTree();
+            showStatus(`تم حذف المادة: ${subjectName}`, 'success');
+        }
+
+        // حذف كورس
+        function deleteCourse(subjectName, courseName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (subject) {
+                subject.courses = subject.courses.filter(c => c.name !== courseName);
+                currentSelection.course = null;
+                currentSelection.lesson = null;
+                clearFields();
+                saveData();
+                updateTree();
+                showStatus(`تم حذف الكورس: ${courseName}`, 'success');
+            }
+        }
+
+        // حذف درس
+        function deleteLesson(subjectName, courseName, lessonName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (subject) {
+                const course = subject.courses.find(c => c.name === courseName);
+                if (course) {
+                    course.lessons = course.lessons.filter(l => l.name !== lessonName);
+                    currentSelection.lesson = null;
+                    clearFields();
+                    saveData();
+                    updateTree();
+                    showStatus(`تم حذف الدرس: ${lessonName}`, 'success');
+                }
+            }
+        }
+
+        // مسح الحقول
+        function clearFields() {
+            document.getElementById('subjectName').value = '';
+            document.getElementById('courseName').value = '';
+            document.getElementById('lessonName').value = '';
+            document.getElementById('pdf').value = '';
+            document.getElementById('audio').value = '';
+            document.getElementById('youtube').value = '';
+            document.getElementById('drive').value = '';
+            document.getElementById('html').value = '';
+        }
+
+        // إغلاق جميع النوافذ
+        function closeAllModals() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('search-modal').style.display = 'none';
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        // عرض نافذة البحث
+        function showSearchModal() {
+            document.getElementById('search-modal').style.display = 'block';
+            document.getElementById('search-input').focus();
+        }
+
+        // إغلاق نافذة البحث
+        function closeSearchModal() {
+            document.getElementById('search-modal').style.display = 'none';
+            document.getElementById('search-results').style.display = 'none';
+        }
+
+        // تنفيذ البحث
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (!searchTerm) {
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            
+            const results = [];
+            subjects.forEach(subject => {
+                subject.courses.forEach(course => {
+                    course.lessons.forEach(lesson => {
+                        if (subject.name.toLowerCase().includes(searchTerm) ||
+                            course.name.toLowerCase().includes(searchTerm) ||
+                            lesson.name.toLowerCase().includes(searchTerm) ||
+                            (lesson.html && cleanCDATA(lesson.html).toLowerCase().includes(searchTerm)) ||
+                            (lesson.pdf && cleanCDATA(lesson.pdf).toLowerCase().includes(searchTerm)) ||
+                            (lesson.audio && cleanCDATA(lesson.audio).toLowerCase().includes(searchTerm)) ||
+                            (lesson.youtube_embed && cleanCDATA(lesson.youtube_embed).toLowerCase().includes(searchTerm)) ||
+                            (lesson.drive_embed && cleanCDATA(lesson.drive_embed).toLowerCase().includes(searchTerm))) {
+                            
+                            results.push({
+                                subject: subject.name,
+                                course: course.name,
+                                lesson: lesson.name,
+                                path: `${subject.name} > ${course.name} > ${lesson.name}`
+                            });
+                        }
+                    });
+                });
+            });
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div class="search-result">لا توجد نتائج مطابقة</div>';
+            } else {
+                resultsContainer.innerHTML = results.map(result => 
+                    `<div class="search-result" onclick="selectSearchResult('${result.subject}', '${result.course}', '${result.lesson}')">
+                        ${result.path}
+                    </div>`
+                ).join('');
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        // اختيار نتيجة بحث
+        function selectSearchResult(subject, course, lesson) {
+            selectItem('lesson', subject, course, lesson);
+            closeSearchModal();
+            
+            // العثور على العنصر وتحديده مرئياً
+            setTimeout(() => {
+                const treeItems = document.querySelectorAll('.tree-item');
+                treeItems.forEach(item => {
+                    if (item.textContent.includes(lesson)) {
+                        item.classList.add('selected');
+                        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            }, 100);
+            
+            showStatus(`تم الانتقال إلى: ${lesson}`, 'success');
+        }
+
+        // عرض نافذة المعاينة
+        function showPreviewModal() {
+            const { subject, course, lesson } = currentSelection;
+            
+            if (!lesson) {
+                showStatus('يرجى اختيار درس لمعاينته', 'error');
+                return;
+            }
+            
+            const lessonData = getLessonData(subject, course, lesson);
+            if (!lessonData) {
+                showStatus('لم يتم العثور على بيانات الدرس', 'error');
+                return;
+            }
+            
+            document.getElementById('preview-title').textContent = `👀 معاينة: ${lesson}`;
+            
+            let previewHTML = `
+                <h3>${subject} > ${course} > ${lesson}</h3>
+                <hr style="margin: 15px 0;">
+            `;
+            
+            // معاينة PDF
+            if (lessonData.pdf) {
+                const pdfContent = lessonData.pdf.trim();
+                previewHTML += `
+                    <div class="preview-section">
+                        <h4>📄 محتوى PDF:</h4>
+                `;
+                
+                if (pdfContent.includes('<iframe') || pdfContent.includes('<embed')) {
+                    // إذا كان كود مضمن
+                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${pdfContent}</div>`;
+                } else {
+                    // إذا كان رابط
+                    previewHTML += `<a href="${pdfContent}" target="_blank">${pdfContent}</a>`;
+                }
+                
+                previewHTML += `</div>`;
+            }
+            
+            // معاينة الصوت
+            if (lessonData.audio) {
+                const audioContent = lessonData.audio.trim();
+                previewHTML += `
+                    <div class="preview-section">
+                        <h4>🎵 محتوى الصوت:</h4>
+                `;
+                
+                if (audioContent.includes('<audio') || audioContent.includes('<iframe') || audioContent.includes('<embed')) {
+                    // إذا كان كود مضمن
+                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${audioContent}</div>`;
+                } else {
+                    // إذا كان رابط صوت
+                    previewHTML += `
+                        <audio controls style="width: 100%;">
+                            <source src="${audioContent}" type="audio/mpeg">
+                            متصفحك لا يدعم تشغيل الصوت
+                        </audio>
+                    `;
+                }
+                
+                previewHTML += `</div>`;
+            }
+            
+            // معاينة يوتيوب
+            if (lessonData.youtube_embed) {
+                const youtubeContent = lessonData.youtube_embed.trim();
+                previewHTML += `
+                    <div class="preview-section">
+                        <h4>📺 محتوى يوتيوب:</h4>
+                `;
+                
+                if (youtubeContent.includes('<iframe') || youtubeContent.includes('<embed')) {
+                    // إذا كان كود مضمن
+                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${youtubeContent}</div>`;
+                } else if (youtubeContent.includes('youtube.com') || youtubeContent.includes('youtu.be')) {
+                    // إذا كان رابط يوتيوب، تحويله لإطار مضمن
+                    let videoId = '';
+                    if (youtubeContent.includes('youtu.be/')) {
+                        videoId = youtubeContent.split('youtu.be/')[1].split('?')[0];
+                    } else if (youtubeContent.includes('watch?v=')) {
+                        videoId = youtubeContent.split('watch?v=')[1].split('&')[0];
+                    }
+                    
+                    if (videoId) {
+                        previewHTML += `<iframe src="https://www.youtube.com/embed/${videoId}" width="100%" height="300" allowfullscreen></iframe>`;
+                    } else {
+                        previewHTML += `<a href="${youtubeContent}" target="_blank">${youtubeContent}</a>`;
+                    }
+                } else {
+                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${youtubeContent}</div>`;
+                }
+                
+                previewHTML += `</div>`;
+            }
+            
+            // معاينة جوجل درايف
+            if (lessonData.drive_embed) {
+                const driveContent = lessonData.drive_embed.trim();
+                previewHTML += `
+                    <div class="preview-section">
+                        <h4>☁️ محتوى جوجل درايف:</h4>
+                `;
+                
+                if (driveContent.includes('<iframe') || driveContent.includes('<embed')) {
+                    // إذا كان كود مضمن
+                    previewHTML += `<div style="border: 1px solid #ddd; padding: 10px; background: white; border-radius: 5px;">${driveContent}</div>`;
+                } else {
+                    // إذا كان رابط
+                    previewHTML += `<a href="${driveContent}" target="_blank">${driveContent}</a>`;
+                }
+                
+                previewHTML += `</div>`;
+            }
+            
+            // معاينة HTML
+            if (lessonData.html) {
+                previewHTML += `
+                    <div class="preview-section">
+                        <h4>🌐 محتوى HTML:</h4>
+                        <div style="border: 1px solid #ddd; padding: 15px; background: white; border-radius: 5px;">
+                            ${cleanCDATA(lessonData.html)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (!lessonData.pdf && !lessonData.audio && !lessonData.youtube_embed && !lessonData.drive_embed && !lessonData.html) {
+                previewHTML += '<p style="text-align: center; color: #666;">هذا الدرس لا يحتوي على محتوى بعد</p>';
+            }
+            
+            document.getElementById('preview-content').innerHTML = previewHTML;
+            document.getElementById('preview-modal').style.display = 'block';
+        }
+
+        // إغلاق نافذة المعاينة
+        function closePreviewModal() {
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        // الحصول على بيانات الدرس
+        function getLessonData(subjectName, courseName, lessonName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) return null;
+            
+            const course = subject.courses.find(c => c.name === courseName);
+            if (!course) return null;
+            
+            return course.lessons.find(l => l.name === lessonName);
+        }
+
+        // عرض رسالة حالة
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 3000);
+        }
+
+        // تحديث شجرة المحتوى
+        function updateTree() {
+            const container = document.getElementById('tree-container');
+            
+            if (subjects.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 20px; color: #666;">
+                        لا توجد مواد حتى الآن<br>
+                        <small>ابدأ بإضافة مادة جديدة</small>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            subjects.forEach(subject => {
+                html += `<div class="tree-item subject" tabindex="0" onclick="selectItem('subject', '${subject.name}')" onkeydown="handleKeyPress(event, 'subject', '${subject.name}')">📚 ${subject.name}</div>`;
+                
+                subject.courses.forEach(course => {
+                    html += `<div class="tree-item course" tabindex="0" onclick="selectItem('course', '${subject.name}', '${course.name}')" onkeydown="handleKeyPress(event, 'course', '${subject.name}', '${course.name}')">📖 ${course.name}</div>`;
+                    
+                    course.lessons.forEach(lesson => {
+                        html += `<div class="tree-item lesson" tabindex="0" onclick="selectItem('lesson', '${subject.name}', '${course.name}', '${lesson.name}')" onkeydown="handleKeyPress(event, 'lesson', '${subject.name}', '${course.name}', '${lesson.name}')">📝 ${lesson.name}</div>`;
+                    });
+                });
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // التعامل مع ضغط المفاتيح في عناصر الشجرة
+        function handleKeyPress(event, type, subject, course = null, lesson = null) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectItem(type, subject, course, lesson);
+            }
+        }
+
+        // اختيار عنصر من الشجرة
+        function selectItem(type, subject, course = null, lesson = null) {
+            currentSelection = { subject, course, lesson };
+            
+            // تحديث الحقول
+            document.getElementById('subjectName').value = subject || '';
+            document.getElementById('courseName').value = course || '';
+            document.getElementById('lessonName').value = lesson || '';
+            
+            // تحميل بيانات الدرس إذا تم اختياره
+            if (type === 'lesson' && lesson) {
+                loadLessonData(subject, course, lesson);
+            }
+            
+            // تحديث التحديد المرئي مع تأثير سلس
+            document.querySelectorAll('.tree-item').forEach(item => {
+                item.classList.remove('selected');
+                item.style.transform = '';
+            });
+            
+            // إضافة التحديد للعنصر الحالي
+            if (event && event.target) {
+                event.target.classList.add('selected');
+                // تمرير سلس للعنصر المحدد
+                event.target.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest' 
+                });
+            }
+            
+            showStatus(`تم اختيار: ${lesson || course || subject}`, 'success');
+        }
+
+        // تحميل بيانات الدرس
+        function loadLessonData(subjectName, courseName, lessonName) {
+            const lessonData = getLessonData(subjectName, courseName, lessonName);
+            if (!lessonData) return;
+            
+            document.getElementById('pdf').value = cleanCDATA(lessonData.pdf || '');
+            document.getElementById('audio').value = cleanCDATA(lessonData.audio || '');
+            document.getElementById('youtube').value = cleanCDATA(lessonData.youtube_embed || '');
+            document.getElementById('drive').value = cleanCDATA(lessonData.drive_embed || '');
+            document.getElementById('html').value = cleanCDATA(lessonData.html || '');
+        }
+
+        // عرض نافذة الإضافة
+        function showAddModal(type) {
+            modalType = type;
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modal-title');
+            const label = document.getElementById('modal-label');
+            const input = document.getElementById('modal-input');
+            
+            // إخفاء جميع القوائم المنسدلة
+            document.getElementById('subject-select-group').style.display = 'none';
+            document.getElementById('course-select-group').style.display = 'none';
+            
+            switch(type) {
+                case 'subject':
+                    title.textContent = 'إضافة مادة جديدة';
+                    label.textContent = 'اسم المادة:';
+                    input.placeholder = 'أدخل اسم المادة';
+                    break;
+                case 'course':
+                    title.textContent = 'إضافة كورس جديد';
+                    label.textContent = 'اسم الكورس:';
+                    input.placeholder = 'أدخل اسم الكورس';
+                    updateSubjectSelect();
+                    document.getElementById('subject-select-group').style.display = 'block';
+                    break;
+                case 'lesson':
+                    title.textContent = 'إضافة درس جديد';
+                    label.textContent = 'اسم الدرس:';
+                    input.placeholder = 'أدخل اسم الدرس';
+                    updateSubjectSelect();
+                    document.getElementById('subject-select-group').style.display = 'block';
+                    document.getElementById('course-select-group').style.display = 'block';
+                    break;
+            }
+            
+            input.value = '';
+            modal.style.display = 'block';
+            input.focus();
+        }
+
+        // تحديث قائمة المواد
+        function updateSubjectSelect() {
+            const select = document.getElementById('subject-select');
+            select.innerHTML = '<option value="">اختر المادة</option>';
+            
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.name;
+                option.textContent = subject.name;
+                select.appendChild(option);
+            });
+            
+            select.onchange = updateCourseSelect;
+        }
+
+        // تحديث قائمة الكورسات
+        function updateCourseSelect() {
+            const subjectSelect = document.getElementById('subject-select');
+            const courseSelect = document.getElementById('course-select');
+            const selectedSubject = subjectSelect.value;
+            
+            courseSelect.innerHTML = '<option value="">اختر الكورس</option>';
+            
+            if (selectedSubject) {
+                const subject = subjects.find(s => s.name === selectedSubject);
+                if (subject) {
+                    subject.courses.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.name;
+                        option.textContent = course.name;
+                        courseSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // إضافة عنصر جديد
+        function addItem() {
+            const name = document.getElementById('modal-input').value.trim();
+            if (!name) {
+                showStatus('يرجى إدخال الاسم', 'error');
+                return;
+            }
+            
+            switch(modalType) {
+                case 'subject':
+                    addSubject(name);
+                    break;
+                case 'course':
+                    const selectedSubject = document.getElementById('subject-select').value;
+                    if (!selectedSubject) {
+                        showStatus('يرجى اختيار المادة', 'error');
+                        return;
+                    }
+                    addCourse(name, selectedSubject);
+                    break;
+                case 'lesson':
+                    const subjectName = document.getElementById('subject-select').value;
+                    const courseName = document.getElementById('course-select').value;
+                    if (!subjectName || !courseName) {
+                        showStatus('يرجى اختيار المادة والكورس', 'error');
+                        return;
+                    }
+                    addLesson(name, subjectName, courseName);
+                    break;
+            }
+            
+            closeModal();
+        }
+
+        // إضافة مادة
+        function addSubject(name) {
+            if (subjects.find(s => s.name.toLowerCase() === name.toLowerCase())) {
+                showStatus('المادة موجودة بالفعل', 'error');
+                return;
+            }
+            
+            subjects.push({ name, courses: [] });
+            saveData();
+            updateTree();
+            showStatus(`تم إضافة المادة: ${name}`, 'success');
+        }
+
+        // إضافة كورس
+        function addCourse(name, subjectName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) {
+                showStatus('المادة غير موجودة', 'error');
+                return;
+            }
+            
+            if (subject.courses.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+                showStatus('الكورس موجود بالفعل', 'error');
+                return;
+            }
+            
+            subject.courses.push({ name, lessons: [] });
+            saveData();
+            updateTree();
+            showStatus(`تم إضافة الكورس: ${name}`, 'success');
+        }
+
+        // إضافة درس
+        function addLesson(name, subjectName, courseName) {
+            const subject = subjects.find(s => s.name === subjectName);
+            if (!subject) {
+                showStatus('المادة غير موجودة', 'error');
+                return;
+            }
+            
+            const course = subject.courses.find(c => c.name === courseName);
+            if (!course) {
+                showStatus('الكورس غير موجود', 'error');
+                return;
+            }
+            
+            if (course.lessons.find(l => l.name.toLowerCase() === name.toLowerCase())) {
+                showStatus('الدرس موجود بالفعل', 'error');
+                return;
+            }
+            
+            course.lessons.push({
+                name,
+                pdf: '',
+                audio: '',
+                youtube_embed: '',
+                drive_embed: '',
+                html: ''
+            });
+            
+            saveData();
+            updateTree();
+            showStatus(`تم إضافة الدرس: ${name}`, 'success');
+        }
+
+        // حفظ الدرس
+        function saveLesson() {
+            const { subject, course, lesson } = currentSelection;
+            if (!lesson) {
+                showStatus('يرجى اختيار درس لحفظه', 'error');
+                return;
+            }
+            
+            const lessonData = getLessonData(subject, course, lesson);
+            if (!lessonData) return;
+            
+            lessonData.pdf = cleanCDATA(document.getElementById('pdf').value);
+            lessonData.audio = cleanCDATA(document.getElementById('audio').value);
+            lessonData.youtube_embed = cleanCDATA(document.getElementById('youtube').value);
+            lessonData.drive_embed = cleanCDATA(document.getElementById('drive').value);
+            lessonData.html = cleanCDATA(document.getElementById('html').value);
+            
+            saveData();
+            showStatus('تم حفظ الدرس بنجاح', 'success');
+        }
+
+        // تحديث الأسماء
+        function updateNames() {
+            const newSubject = document.getElementById('subjectName').value.trim();
+            const newCourse = document.getElementById('courseName').value.trim();
+            const newLesson = document.getElementById('lessonName').value.trim();
+            
+            const { subject, course, lesson } = currentSelection;
+            
+            if (lesson) {
+                const subjectObj = subjects.find(s => s.name === subject);
+                if (subjectObj) {
+                    if (newSubject && newSubject !== subject) {
+                        subjectObj.name = newSubject;
+                        currentSelection.subject = newSubject;
+                    }
+                    
+                    const courseObj = subjectObj.courses.find(c => c.name === course);
+                    if (courseObj) {
+                        if (newCourse && newCourse !== course) {
+                            courseObj.name = newCourse;
+                            currentSelection.course = newCourse;
+                        }
+                        
+                        const lessonObj = courseObj.lessons.find(l => l.name === lesson);
+                        if (lessonObj && newLesson && newLesson !== lesson) {
+                            lessonObj.name = newLesson;
+                            currentSelection.lesson = newLesson;
+                        }
+                    }
+                }
+                
+                saveData();
+                updateTree();
+                showStatus('تم تحديث الأسماء بنجاح', 'success');
+            }
+        }
+
+        // تصدير XML
+        function exportXML() {
+            if (subjects.length === 0) {
+                showStatus('لا توجد بيانات للتصدير', 'error');
+                return;
+            }
+            
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<subjects>\n';
+            
+            subjects.forEach(subject => {
+                xml += `  <subject name="${escapeXml(subject.name)}">\n`;
+                
+                subject.courses.forEach(course => {
+                    xml += `    <course name="${escapeXml(course.name)}">\n`;
+                    
+                    course.lessons.forEach(lesson => {
+                        xml += `      <lesson name="${escapeXml(lesson.name)}">\n`;
+                        xml += `        <pdf>${escapeXml(lesson.pdf || '')}</pdf>\n`;
+                        xml += `        <audio>${escapeXml(lesson.audio || '')}</audio>\n`;
+                        xml += `        <youtube_embed>${escapeXml(lesson.youtube_embed || '')}</youtube_embed>\n`;
+                        xml += `        <drive_embed>${escapeXml(lesson.drive_embed || '')}</drive_embed>\n`;
+                        xml += `        <html><![CDATA[${lesson.html || ''}]]></html>\n`;
+                        xml += `      </lesson>\n`;
+                    });
+                    
+                    xml += `    </course>\n`;
+                });
+                
+                xml += `  </subject>\n`;
+            });
+            
+            xml += '</subjects>';
+            
+            // تحميل الملف
+            const blob = new Blob([xml], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `education_data_${new Date().toISOString().slice(0,10)}.xml`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showStatus('تم تصدير البيانات بنجاح', 'success');
+        }
+
+        // استيراد XML
+        function importXML(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const xml = e.target.result;
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(xml, 'text/xml');
+                    
+                    if (doc.querySelector('parsererror')) {
+                        showStatus('خطأ في تحليل ملف XML', 'error');
+                        return;
+                    }
+                    
+                    subjects = [];
+                    const subjectNodes = doc.querySelectorAll('subject');
+                    
+                    subjectNodes.forEach(subjectNode => {
+                        const subject = {
+                            name: subjectNode.getAttribute('name'),
+                            courses: []
+                        };
+                        
+                        const courseNodes = subjectNode.querySelectorAll('course');
+                        courseNodes.forEach(courseNode => {
+                            const course = {
+                                name: courseNode.getAttribute('name'),
+                                lessons: []
+                            };
+                            
+                            const lessonNodes = courseNode.querySelectorAll('lesson');
+                            lessonNodes.forEach(lessonNode => {
+                                const lesson = {
+                                    name: lessonNode.getAttribute('name'),
+                                    pdf: cleanCDATA(lessonNode.querySelector('pdf')?.textContent || ''),
+                                    audio: cleanCDATA(lessonNode.querySelector('audio')?.textContent || ''),
+                                    youtube_embed: cleanCDATA(lessonNode.querySelector('youtube_embed')?.textContent || ''),
+                                    drive_embed: cleanCDATA(lessonNode.querySelector('drive_embed')?.textContent || ''),
+                                    html: cleanCDATA(lessonNode.querySelector('html')?.textContent || '')
+                                };
+                                
+                                course.lessons.push(lesson);
+                            });
+                            
+                            subject.courses.push(course);
+                        });
+                        
+                        subjects.push(subject);
+                    });
+                    
+                    saveData();
+                    updateTree();
+                    showStatus('تم استيراد البيانات بنجاح', 'success');
+                    
+                } catch (error) {
+                    showStatus('خطأ في استيراد الملف', 'error');
+                }
+            };
+            
+            reader.readAsText(file, 'UTF-8');
+            input.value = '';
+        }
+
+        // إغلاق النافذة المنبثقة
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // حفظ البيانات محلياً
+        function saveData() {
+            localStorage.setItem('educationData', JSON.stringify(subjects));
+        }
+
+        // تشفير XML
+        function escapeXml(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        }
+
+        // إغلاق النافذة المنبثقة عند النقر خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            const searchModal = document.getElementById('search-modal');
+            const previewModal = document.getElementById('preview-modal');
+            
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+            if (event.target == searchModal) {
+                searchModal.style.display = 'none';
+            }
+            if (event.target == previewModal) {
+                previewModal.style.display = 'none';
+            }
+        }
+
+        // تنظيف محتوى HTML من علامات CDATA
+        function cleanCDATA(content) {
+            if (!content) return '';
+            // إزالة علامات CDATA
+            return content
+                .replace(/<!\[CDATA\[/g, '')
+                .replace(/\]\]>/g, '')
+                .trim();
+        }
+    </script>
+</body>
+</html> 
